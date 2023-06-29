@@ -26,20 +26,24 @@
       >
       <br />
       <br />
-      <input type="number" min="0" "gameSpeed" id="gameSpeed" style="width: 203px" />
+      <input type="number" min="0" value="50" id="gameSpeed" style="width: 203px" />
       <br />
       <br />
       <br />
       <button type="button" id="start">Let's Start</button>
     </div>
     <div class="gameContent" id="gameContent" style="text-align: center">
-      <h1 style="font-family: Cursive; margin-top: 40px">Point: 0</h1>
+      <h1 id="point" style="font-family: Cursive; margin-top: 40px">Point: 0</h1>
       <canvas
         id="canvas"
         width="800px"
         height="800px"
         style="background-color: black; position: relative"
-      />
+      >
+      </canvas>
+      <div style="text-align: center;">
+        <button type="button" id="restart" style="margin-top: 20px;">Restart</button>
+      </div>
     </div>
 
     <script>
@@ -85,6 +89,17 @@
         document.addEventListener("keydown", moveSnake);
       });
 
+      document.getElementById("restart").addEventListener("click", function () {
+        clearAllCanvas();
+        removeSnake();
+        removeTarget();
+        document.getElementById("point").style.display = "block";
+        point = 0;
+        document.getElementById("point").innerHTML = "Point: " + point;
+        createTarget(createRandomPointX(), createRandomPointY());
+        addPieceToSnake(createRandomPointX(), createRandomPointY());
+      });
+
       function moveSnake(event) {
         const pressedCharacter = event.key.toUpperCase();
         clearPreviousMoves();
@@ -108,8 +123,18 @@
       }
 
       function redirectSnake(dx, dy) {
-        checkBorders();
-        checkCollision();
+        const isBorderCrossed = checkBorders();
+
+        if(isBorderCrossed) {
+          return;
+        }
+
+        const isCollisionOccured = checkCollision();
+
+        if(isCollisionOccured) {
+          return;
+        }
+
         keepGoing(dx, dy);
       }
 
@@ -117,13 +142,7 @@
         const headOfTheSnake = getHeadOfTheSnake();
         const tailOfTheSnake = snakeCoordinates.shift();
 
-        canvasContext.clearRect(
-          tailOfTheSnake[0],
-          tailOfTheSnake[1],
-          OBJECT_WIDTH,
-          OBJECT_HEIGHT
-        );
-
+        destroyObject(tailOfTheSnake[0], tailOfTheSnake[1]);
         addPieceToSnake(headOfTheSnake[0] + dx, headOfTheSnake[1] + dy);
         eatTarget(dx, dy);
       }
@@ -131,14 +150,16 @@
       function checkBorders() {
         const headOfTheSnake = getHeadOfTheSnake();
 
-        if (
-          headOfTheSnake[0] < 0 ||
+        const isBorderCrossed = headOfTheSnake[0] < 0 ||
           headOfTheSnake[0] > CANVAS_WIDTH - OBJECT_WIDTH ||
           headOfTheSnake[1] < 0 ||
-          headOfTheSnake[1] > CANVAS_HEIGHT - OBJECT_HEIGHT
-        ) {
+          headOfTheSnake[1] > CANVAS_HEIGHT - OBJECT_HEIGHT;
+
+        if (isBorderCrossed) {
           gameOver();
         }
+
+        return isBorderCrossed;
       }
 
       function checkCollision() {
@@ -150,15 +171,21 @@
             snakeCoordinates[i][1] === headOfTheSnake[1]
           ) {
             gameOver();
+            return true;
           }
         }
+
+        return false;
       }
 
       function gameOver() {
-        document.querySelector("h1").style.display = "none";
+        document.getElementById("point").style.display = "none";
         const filledText = userName + "'s point: " + point;
         canvasContext.font = "50px Cursive";
         canvasContext.fillText(filledText, 50, 50);
+        clearPreviousMoves();
+        removeSnake();
+        removeTarget();
       }
 
       function eatTarget(dx, dy) {
@@ -184,7 +211,7 @@
 
           createTarget(x, y);
           point += 10;
-          document.querySelector("h1").innerHTML = "Point: " + point;
+          document.getElementById("point").innerHTML = "Point: " + point;
         }
       }
 
@@ -240,9 +267,17 @@
         changeTargetCoordinates(x, y);
       }
 
+      function removeTarget() {
+        targetCoordinates = [];
+      }
+
       function addPieceToSnake(x, y) {
         createObject(x, y, "red");
         addSnakeCoordinates(x, y);
+      }
+
+      function removeSnake() {
+        snakeCoordinates = [];
       }
 
       function addSnakeCoordinates(x, y) {
@@ -258,6 +293,13 @@
         canvasContext.rect(x, y, OBJECT_WIDTH, OBJECT_HEIGHT);
         canvasContext.fillStyle = color;
         canvasContext.fill();
+      }
+
+      function clearAllCanvas() {
+        canvasContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+      function destroyObject(x, y) {
+        canvasContext.clearRect(x, y, OBJECT_WIDTH, OBJECT_HEIGHT);
       }
     </script>
   </body>
