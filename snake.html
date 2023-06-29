@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-
-<html>
+</html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
   </head>
 
@@ -16,150 +16,106 @@
       <label for="userName" style="font-family: Cursive"
         >Enter your user name:</label
       >
-
       <br />
       <br />
-
       <input type="text" name="userName" id="userName" style="width: 203px" />
-
       <br />
       <br />
-
       <label for="gameSpeed" style="font-family: Cursive"
         >Enter the game speed in ms:</label
       >
-
       <br />
       <br />
-
-      <input type="text" name="gameSpeed" id="gameSpeed" style="width: 203px" />
-
+      <input type="number" min="0" "gameSpeed" id="gameSpeed" style="width: 203px" />
       <br />
       <br />
       <br />
-
       <button type="button" id="start">Let's Start</button>
     </div>
-
     <div class="gameContent" id="gameContent" style="text-align: center">
       <h1 style="font-family: Cursive; margin-top: 40px">Point: 0</h1>
-
       <canvas
         id="canvas"
         width="800px"
         height="800px"
         style="background-color: black; position: relative"
-      ></canvas>
+      />
     </div>
 
     <script>
       const canvas = document.getElementById("canvas");
-
       const canvasContext = canvas.getContext("2d");
-
       const CANVAS_WIDTH = getCanvasWidth();
-
       const CANVAS_HEIGHT = getCanvasHeight();
-
       const OBJECT_WIDTH = 20;
-
       const OBJECT_HEIGHT = 20;
-
-      var userName;
-
-      var gameSpeed;
-
-      var snakeCoordinates = [];
-
-      var targetCoordinate = [];
-
-      var clearIntervalIdW;
-
-      var clearIntervalIdA;
-
-      var clearIntervalIdS;
-
-      var clearIntervalIdD;
-
-      var point = 0;
+      const PRESSED_CHARACTERS_COORDINATES = {
+        W: [0, -20],
+        ARROWUP: [0, -20],
+        A: [-20, 0],
+        ARROWLEFT: [-20, 0],
+        S: [0, 20],
+        ARROWDOWN: [0, 20],
+        D: [20, 0],
+        ARROWRIGHT: [20, 0],
+      };
+      let lastPressedValidCharacter = "W";
+      let intervalIds = [];
+      let userName;
+      let gameSpeed;
+      let snakeCoordinates = [];
+      let targetCoordinates = [];
+      let point = 0;
 
       document.getElementById("gameContent").style.display = "none";
 
       document.getElementById("start").addEventListener("click", function () {
         userName = document.getElementById("userName").value;
-
         gameSpeed = document.getElementById("gameSpeed").value;
 
-        if (userName === "" || gameSpeed == "") {
-          alert("Please fill the fields to start game :)");
-        } else {
-          document.getElementById("starter").style.display = "none";
-
-          document.getElementById("gameContent").style.display = "block";
-
-          createTarget(createRandomPointX(), createRandomPointY());
-
-          createSnake(createRandomPointX(), createRandomPointY());
-
-          document.addEventListener("keydown", moveSnake);
-        }
+        if (userName === "" || gameSpeed === "") {
+          alert("Please fill all the fields to start game :)");
+          return;
+        } 
+          
+        document.getElementById("starter").style.display = "none";
+        document.getElementById("gameContent").style.display = "block";
+        createTarget(createRandomPointX(), createRandomPointY());
+        createSnake(createRandomPointX(), createRandomPointY());
+        document.addEventListener("keydown", moveSnake);
       });
 
       function moveSnake(event) {
-        var pressedCharacter = event.key.toUpperCase();
-
+        const pressedCharacter = event.key.toUpperCase();
         clearPreviousMoves();
 
-        switch (pressedCharacter) {
-          case "W":
-            clearIntervalIdW = setInterval(redirectSnake, gameSpeed, 0, -20);
-
-            break;
-
-          case "A":
-            clearIntervalIdA = setInterval(redirectSnake, gameSpeed, -20, 0);
-
-            break;
-
-          case "S":
-            clearIntervalIdS = setInterval(redirectSnake, gameSpeed, 0, 20);
-
-            break;
-
-          case "D":
-            clearIntervalIdD = setInterval(redirectSnake, gameSpeed, 20, 0);
-
-            break;
-
-          default:
-            // :toDo
-
-            break;
+        let coordinates = PRESSED_CHARACTERS_COORDINATES[pressedCharacter];
+        
+        if(!coordinates) {
+          coordinates = PRESSED_CHARACTERS_COORDINATES[lastPressedValidCharacter];
+        } else {
+          lastPressedValidCharacter = pressedCharacter;
         }
+  
+        const intervalId = setInterval(redirectSnake, gameSpeed, coordinates[0], coordinates[1]);
+        intervalIds.push(intervalId);
       }
 
       function clearPreviousMoves() {
-        clearInterval(clearIntervalIdW);
-
-        clearInterval(clearIntervalIdA);
-
-        clearInterval(clearIntervalIdS);
-
-        clearInterval(clearIntervalIdD);
+        for(const intervalId of intervalIds) {
+          clearInterval(intervalId);
+        }
       }
 
       function redirectSnake(dx, dy) {
         checkBorders();
-
         checkCollision();
-
         keepGoing(dx, dy);
       }
 
       function keepGoing(dx, dy) {
-        var headOfTheSnake = getHeadOfTheSnake();
-
-        var tailOfTheSnake = snakeCoordinates.shift();
+        const headOfTheSnake = getHeadOfTheSnake();
+        const tailOfTheSnake = snakeCoordinates.shift();
 
         canvasContext.clearRect(
           tailOfTheSnake[0],
@@ -169,12 +125,11 @@
         );
 
         createSnake(headOfTheSnake[0] + dx, headOfTheSnake[1] + dy);
-
         eatTarget(dx, dy);
       }
 
       function checkBorders() {
-        var headOfTheSnake = getHeadOfTheSnake();
+        const headOfTheSnake = getHeadOfTheSnake();
 
         if (
           headOfTheSnake[0] < 0 ||
@@ -187,7 +142,7 @@
       }
 
       function checkCollision() {
-        var headOfTheSnake = getHeadOfTheSnake();
+        const headOfTheSnake = getHeadOfTheSnake();
 
         for (let i = 0; i < snakeCoordinates.length - 1; i++) {
           if (
@@ -201,51 +156,42 @@
 
       function gameOver() {
         document.querySelector("h1").style.display = "none";
-
-        var filledText = userName + "'s point: " + point;
-
+        const filledText = userName + "'s point: " + point;
         canvasContext.font = "50px Cursive";
-
         canvasContext.fillText(filledText, 50, 50);
       }
 
       function eatTarget(dx, dy) {
-        var headOfTheSnake = getHeadOfTheSnake();
-
-        const targetCoord = getTargetCoordinate();
+        const headOfTheSnake = getHeadOfTheSnake();
+        const targetCoordinates = getTargetCoordinates();
 
         if (
-          headOfTheSnake[0] === targetCoord[0] &&
-          headOfTheSnake[1] === targetCoord[1]
+          headOfTheSnake[0] === targetCoordinates[0] &&
+          headOfTheSnake[1] === targetCoordinates[1]
         ) {
-          createSnake(targetCoord[0] + dx, targetCoord[1] + dy);
+          createSnake(targetCoordinates[0] + dx, targetCoordinates[1] + dy);
 
-          var x = createRandomPointX();
-
-          var y = createRandomPointY();
+          let x = createRandomPointX();
+          let y = createRandomPointY();
 
           for (let i = 0; i < snakeCoordinates.length; i++) {
             if (snakeCoordinates[i][0] === x && snakeCoordinates[i][1] === y) {
               x = createRandomPointX();
-
               y = createRandomPointY();
-
               i = 0;
             }
           }
 
           createTarget(x, y);
-
           point += 10;
-
           document.querySelector("h1").innerHTML = "Point: " + point;
         }
       }
 
       function getHeadOfTheSnake() {
-        var numberOfSnakeParts = snakeCoordinates.length;
+        const numberOfSnakeParts = snakeCoordinates.length;
 
-        var headOfTheSnake = [
+        const headOfTheSnake = [
           snakeCoordinates[numberOfSnakeParts - 1][0],
           snakeCoordinates[numberOfSnakeParts - 1][1],
         ];
@@ -253,10 +199,10 @@
         return headOfTheSnake;
       }
 
-      function getTargetCoordinate() {
-        var coordinate = [targetCoordinate[0][0], targetCoordinate[0][1]];
+      function getTargetCoordinates() {
+        const coordinates = [targetCoordinates[0][0], targetCoordinates[0][1]];
 
-        return coordinate;
+        return coordinates;
       }
 
       function getCanvasWidth() {
@@ -268,50 +214,49 @@
       }
 
       function createRandomPointX() {
+        let x;
+
         do {
-          var x = Math.floor(Math.random() * (CANVAS_WIDTH - OBJECT_WIDTH + 1));
-        } while (x % 20 != 0);
+          x = Math.floor(Math.random() * (CANVAS_WIDTH - OBJECT_WIDTH + 1));
+        } while (x % OBJECT_WIDTH !== 0);
 
         return x;
       }
 
       function createRandomPointY() {
+        let y;
+
         do {
-          var y = Math.floor(
+         y = Math.floor(
             Math.random() * (CANVAS_HEIGHT - OBJECT_HEIGHT + 1)
           );
-        } while (y % 20 != 0);
+        } while (y % OBJECT_HEIGHT !== 0);
 
         return y;
       }
 
       function createTarget(x, y) {
         createObject(x, y, "#8ED6FF");
-
-        changeTargetCoordinate(x, y);
+        changeTargetCoordinates(x, y);
       }
 
       function createSnake(x, y) {
         createObject(x, y, "red");
-
-        addSnakeCoordinate(x, y);
+        addSnakeCoordinates(x, y);
       }
 
-      function addSnakeCoordinate(x, y) {
+      function addSnakeCoordinates(x, y) {
         snakeCoordinates.push([x, y]);
       }
 
-      function changeTargetCoordinate(x, y) {
-        targetCoordinate = [[x, y]];
+      function changeTargetCoordinates(x, y) {
+        targetCoordinates = [[x, y]];
       }
 
       function createObject(x, y, color) {
         canvasContext.beginPath();
-
         canvasContext.rect(x, y, OBJECT_WIDTH, OBJECT_HEIGHT);
-
         canvasContext.fillStyle = color;
-
         canvasContext.fill();
       }
     </script>
