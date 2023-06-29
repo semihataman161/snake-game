@@ -81,7 +81,7 @@
         document.getElementById("starter").style.display = "none";
         document.getElementById("gameContent").style.display = "block";
         createTarget(createRandomPointX(), createRandomPointY());
-        createSnake(createRandomPointX(), createRandomPointY());
+        addPieceToSnake(createRandomPointX(), createRandomPointY());
         document.addEventListener("keydown", moveSnake);
       });
 
@@ -124,7 +124,7 @@
           OBJECT_HEIGHT
         );
 
-        createSnake(headOfTheSnake[0] + dx, headOfTheSnake[1] + dy);
+        addPieceToSnake(headOfTheSnake[0] + dx, headOfTheSnake[1] + dy);
         eatTarget(dx, dy);
       }
 
@@ -169,7 +169,7 @@
           headOfTheSnake[0] === targetCoordinates[0] &&
           headOfTheSnake[1] === targetCoordinates[1]
         ) {
-          createSnake(targetCoordinates[0] + dx, targetCoordinates[1] + dy);
+          addPieceToSnake(targetCoordinates[0] + dx, targetCoordinates[1] + dy);
 
           let x = createRandomPointX();
           let y = createRandomPointY();
@@ -240,7 +240,7 @@
         changeTargetCoordinates(x, y);
       }
 
-      function createSnake(x, y) {
+      function addPieceToSnake(x, y) {
         createObject(x, y, "red");
         addSnakeCoordinates(x, y);
       }
