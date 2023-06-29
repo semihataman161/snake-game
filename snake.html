@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Snake Game</title>
+  </head>
+
+  <body style="background-color: #ff6666">
+    <div
+      class="starter"
+      style="position: relative; text-align: center; top: 380px"
+      id="starter"
+    >
+      <label for="userName" style="font-family: Cursive"
+        >Enter your user name:</label
+      >
+
+      <br />
+      <br />
+
+      <input type="text" name="userName" id="userName" style="width: 203px" />
+
+      <br />
+      <br />
+
+      <label for="gameSpeed" style="font-family: Cursive"
+        >Enter the game speed in ms:</label
+      >
+
+      <br />
+      <br />
+
+      <input type="text" name="gameSpeed" id="gameSpeed" style="width: 203px" />
+
+      <br />
+      <br />
+      <br />
+
+      <button type="button" id="start">Let's Start</button>
+    </div>
+
+    <div class="gameContent" id="gameContent" style="text-align: center">
+      <h1 style="font-family: Cursive; margin-top: 40px">Point: 0</h1>
+
+      <canvas
+        id="canvas"
+        width="800px"
+        height="800px"
+        style="background-color: black; position: relative"
+      ></canvas>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+
+      const canvasContext = canvas.getContext("2d");
+
+      const CANVAS_WIDTH = getCanvasWidth();
+
+      const CANVAS_HEIGHT = getCanvasHeight();
+
+      const OBJECT_WIDTH = 20;
+
+      const OBJECT_HEIGHT = 20;
+
+      var userName;
+
+      var gameSpeed;
+
+      var snakeCoordinates = [];
+
+      var targetCoordinate = [];
+
+      var clearIntervalIdW;
+
+      var clearIntervalIdA;
+
+      var clearIntervalIdS;
+
+      var clearIntervalIdD;
+
+      var point = 0;
+
+      document.getElementById("gameContent").style.display = "none";
+
+      document.getElementById("start").addEventListener("click", function () {
+        userName = document.getElementById("userName").value;
+
+        gameSpeed = document.getElementById("gameSpeed").value;
+
+        if (userName === "" || gameSpeed == "") {
+          alert("Please fill the fields to start game :)");
+        } else {
+          document.getElementById("starter").style.display = "none";
+
+          document.getElementById("gameContent").style.display = "block";
+
+          createTarget(createRandomPointX(), createRandomPointY());
+
+          createSnake(createRandomPointX(), createRandomPointY());
+
+          document.addEventListener("keydown", moveSnake);
+        }
+      });
+
+      function moveSnake(event) {
+        var pressedCharacter = event.key.toUpperCase();
+
+        clearPreviousMoves();
+
+        switch (pressedCharacter) {
+          case "W":
+            clearIntervalIdW = setInterval(redirectSnake, gameSpeed, 0, -20);
+
+            break;
+
+          case "A":
+            clearIntervalIdA = setInterval(redirectSnake, gameSpeed, -20, 0);
+
+            break;
+
+          case "S":
+            clearIntervalIdS = setInterval(redirectSnake, gameSpeed, 0, 20);
+
+            break;
+
+          case "D":
+            clearIntervalIdD = setInterval(redirectSnake, gameSpeed, 20, 0);
+
+            break;
+
+          default:
+            // :toDo
+
+            break;
+        }
+      }
+
+      function clearPreviousMoves() {
+        clearInterval(clearIntervalIdW);
+
+        clearInterval(clearIntervalIdA);
+
+        clearInterval(clearIntervalIdS);
+
+        clearInterval(clearIntervalIdD);
+      }
+
+      function redirectSnake(dx, dy) {
+        checkBorders();
+
+        checkCollision();
+
+        keepGoing(dx, dy);
+      }
+
+      function keepGoing(dx, dy) {
+        var headOfTheSnake = getHeadOfTheSnake();
+
+        var tailOfTheSnake = snakeCoordinates.shift();
+
+        canvasContext.clearRect(
+          tailOfTheSnake[0],
+          tailOfTheSnake[1],
+          OBJECT_WIDTH,
+          OBJECT_HEIGHT
+        );
+
+        createSnake(headOfTheSnake[0] + dx, headOfTheSnake[1] + dy);
+
+        eatTarget(dx, dy);
+      }
+
+      function checkBorders() {
+        var headOfTheSnake = getHeadOfTheSnake();
+
+        if (
+          headOfTheSnake[0] < 0 ||
+          headOfTheSnake[0] > CANVAS_WIDTH - OBJECT_WIDTH ||
+          headOfTheSnake[1] < 0 ||
+          headOfTheSnake[1] > CANVAS_HEIGHT - OBJECT_HEIGHT
+        ) {
+          gameOver();
+        }
+      }
+
+      function checkCollision() {
+        var headOfTheSnake = getHeadOfTheSnake();
+
+        for (let i = 0; i < snakeCoordinates.length - 1; i++) {
+          if (
+            snakeCoordinates[i][0] === headOfTheSnake[0] &&
+            snakeCoordinates[i][1] === headOfTheSnake[1]
+          ) {
+            gameOver();
+          }
+        }
+      }
+
+      function gameOver() {
+        document.querySelector("h1").style.display = "none";
+
+        var filledText = userName + "'s point: " + point;
+
+        canvasContext.font = "50px Cursive";
+
+        canvasContext.fillText(filledText, 50, 50);
+      }
+
+      function eatTarget(dx, dy) {
+        var headOfTheSnake = getHeadOfTheSnake();
+
+        const targetCoord = getTargetCoordinate();
+
+        if (
+          headOfTheSnake[0] === targetCoord[0] &&
+          headOfTheSnake[1] === targetCoord[1]
+        ) {
+          createSnake(targetCoord[0] + dx, targetCoord[1] + dy);
+
+          var x = createRandomPointX();
+
+          var y = createRandomPointY();
+
+          for (let i = 0; i < snakeCoordinates.length; i++) {
+            if (snakeCoordinates[i][0] === x && snakeCoordinates[i][1] === y) {
+              x = createRandomPointX();
+
+              y = createRandomPointY();
+
+              i = 0;
+            }
+          }
+
+          createTarget(x, y);
+
+          point += 10;
+
+          document.querySelector("h1").innerHTML = "Point: " + point;
+        }
+      }
+
+      function getHeadOfTheSnake() {
+        var numberOfSnakeParts = snakeCoordinates.length;
+
+        var headOfTheSnake = [
+          snakeCoordinates[numberOfSnakeParts - 1][0],
+          snakeCoordinates[numberOfSnakeParts - 1][1],
+        ];
+
+        return headOfTheSnake;
+      }
+
+      function getTargetCoordinate() {
+        var coordinate = [targetCoordinate[0][0], targetCoordinate[0][1]];
+
+        return coordinate;
+      }
+
+      function getCanvasWidth() {
+        return canvas.width;
+      }
+
+      function getCanvasHeight() {
+        return canvas.width;
+      }
+
+      function createRandomPointX() {
+        do {
+          var x = Math.floor(Math.random() * (CANVAS_WIDTH - OBJECT_WIDTH + 1));
+        } while (x % 20 != 0);
+
+        return x;
+      }
+
+      function createRandomPointY() {
+        do {
+          var y = Math.floor(
+            Math.random() * (CANVAS_HEIGHT - OBJECT_HEIGHT + 1)
+          );
+        } while (y % 20 != 0);
+
+        return y;
+      }
+
+      function createTarget(x, y) {
+        createObject(x, y, "#8ED6FF");
+
+        changeTargetCoordinate(x, y);
+      }
+
+      function createSnake(x, y) {
+        createObject(x, y, "red");
+
+        addSnakeCoordinate(x, y);
+      }
+
+      function addSnakeCoordinate(x, y) {
+        snakeCoordinates.push([x, y]);
+      }
+
+      function changeTargetCoordinate(x, y) {
+        targetCoordinate = [[x, y]];
+      }
+
+      function createObject(x, y, color) {
+        canvasContext.beginPath();
+
+        canvasContext.rect(x, y, OBJECT_WIDTH, OBJECT_HEIGHT);
+
+        canvasContext.fillStyle = color;
+
+        canvasContext.fill();
+      }
+    </script>
+  </body>
+</html>
