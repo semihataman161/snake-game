@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="author" content="Semih Ataman">
+    <meta charset="UTF-8" />
+    <meta name="author" content="Semih Ataman" />
     <title>Snake Game</title>
-    <link rel="icon" href="Images/Snake.ico">
+    <link rel="icon" href="Images/Snake.ico" />
   </head>
 
   <body style="background-color: #ff6666">
@@ -26,14 +26,22 @@
       >
       <br />
       <br />
-      <input type="number" min="0" value="50" id="gameSpeed" style="width: 203px" />
+      <input
+        type="number"
+        min="0"
+        value="50"
+        id="gameSpeed"
+        style="width: 203px"
+      />
       <br />
       <br />
       <br />
       <button type="button" id="start">Let's Start</button>
     </div>
     <div class="gameContent" id="gameContent" style="text-align: center">
-      <h1 id="point" style="font-family: Cursive; margin-top: 40px">Point: 0</h1>
+      <h1 id="point" style="font-family: Cursive; margin-top: 40px">
+        Point: 0
+      </h1>
       <canvas
         id="canvas"
         width="800px"
@@ -41,8 +49,10 @@
         style="background-color: black; position: relative"
       >
       </canvas>
-      <div style="text-align: center;">
-        <button type="button" id="restart" style="margin-top: 20px;">Restart</button>
+      <div style="text-align: center">
+        <button type="button" id="restart" style="margin-top: 20px">
+          Restart
+        </button>
       </div>
     </div>
 
@@ -51,17 +61,18 @@
       const canvasContext = canvas.getContext("2d");
       const CANVAS_WIDTH = getCanvasWidth();
       const CANVAS_HEIGHT = getCanvasHeight();
-      const OBJECT_WIDTH = 20;
-      const OBJECT_HEIGHT = 20;
+      const OBJECT_WIDTH = 25;
+      const OBJECT_HEIGHT = 25;
+      const MARGIN = 5;
       const PRESSED_CHARACTERS_COORDINATES = {
-        W: [0, -20],
-        ARROWUP: [0, -20],
-        A: [-20, 0],
-        ARROWLEFT: [-20, 0],
-        S: [0, 20],
-        ARROWDOWN: [0, 20],
-        D: [20, 0],
-        ARROWRIGHT: [20, 0],
+        W: [0, -OBJECT_HEIGHT],
+        ARROWUP: [0, -OBJECT_HEIGHT],
+        A: [-OBJECT_WIDTH, 0],
+        ARROWLEFT: [-OBJECT_WIDTH, 0],
+        S: [0, OBJECT_HEIGHT],
+        ARROWDOWN: [0, OBJECT_HEIGHT],
+        D: [OBJECT_WIDTH, 0],
+        ARROWRIGHT: [OBJECT_WIDTH, 0],
       };
       let lastPressedValidCharacter = "W";
       let intervalIds = [];
@@ -80,8 +91,8 @@
         if (userName === "" || gameSpeed === "") {
           alert("Please fill all the fields to start game :)");
           return;
-        } 
-          
+        }
+
         document.getElementById("starter").style.display = "none";
         document.getElementById("gameContent").style.display = "block";
         createTarget(createRandomPointX(), createRandomPointY());
@@ -105,19 +116,25 @@
         clearPreviousMoves();
 
         let coordinates = PRESSED_CHARACTERS_COORDINATES[pressedCharacter];
-        
-        if(!coordinates) {
-          coordinates = PRESSED_CHARACTERS_COORDINATES[lastPressedValidCharacter];
+
+        if (!coordinates) {
+          coordinates =
+            PRESSED_CHARACTERS_COORDINATES[lastPressedValidCharacter];
         } else {
           lastPressedValidCharacter = pressedCharacter;
         }
-  
-        const intervalId = setInterval(redirectSnake, gameSpeed, coordinates[0], coordinates[1]);
+
+        const intervalId = setInterval(
+          redirectSnake,
+          gameSpeed,
+          coordinates[0],
+          coordinates[1]
+        );
         intervalIds.push(intervalId);
       }
 
       function clearPreviousMoves() {
-        for(const intervalId of intervalIds) {
+        for (const intervalId of intervalIds) {
           clearInterval(intervalId);
         }
       }
@@ -125,13 +142,13 @@
       function redirectSnake(dx, dy) {
         const isBorderCrossed = checkBorders();
 
-        if(isBorderCrossed) {
+        if (isBorderCrossed) {
           return;
         }
 
         const isCollisionOccured = checkCollision();
 
-        if(isCollisionOccured) {
+        if (isCollisionOccured) {
           return;
         }
 
@@ -150,7 +167,8 @@
       function checkBorders() {
         const headOfTheSnake = getHeadOfTheSnake();
 
-        const isBorderCrossed = headOfTheSnake[0] < 0 ||
+        const isBorderCrossed =
+          headOfTheSnake[0] < 0 ||
           headOfTheSnake[0] > CANVAS_WIDTH - OBJECT_WIDTH ||
           headOfTheSnake[1] < 0 ||
           headOfTheSnake[1] > CANVAS_HEIGHT - OBJECT_HEIGHT;
@@ -254,9 +272,7 @@
         let y;
 
         do {
-         y = Math.floor(
-            Math.random() * (CANVAS_HEIGHT - OBJECT_HEIGHT + 1)
-          );
+          y = Math.floor(Math.random() * (CANVAS_HEIGHT - OBJECT_HEIGHT + 1));
         } while (y % OBJECT_HEIGHT !== 0);
 
         return y;
@@ -290,7 +306,7 @@
 
       function createObject(x, y, color) {
         canvasContext.beginPath();
-        canvasContext.rect(x, y, OBJECT_WIDTH, OBJECT_HEIGHT);
+        canvasContext.rect(x, y, OBJECT_WIDTH - MARGIN, OBJECT_HEIGHT - MARGIN);
         canvasContext.fillStyle = color;
         canvasContext.fill();
       }
